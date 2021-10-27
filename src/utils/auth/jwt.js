@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken"
-import AuthorModel from "../../authors/schema.js"
+import UserModel from "../../services/users/schema.js"
 
 // Generate JWT tokens when we are authenticating one of our users
 
@@ -42,7 +42,7 @@ export async function JwtMiddleware(req, res, next) {
             const decoded = await verifyJwt(token)
 
             console.log(decoded)
-            const user = await AuthorModel.findById(decoded.id)
+            const user = await UserModel.findById(decoded.id)
 
             console.log(user)
 

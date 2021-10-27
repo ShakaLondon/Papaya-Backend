@@ -1,14 +1,65 @@
 import express from "express"
 import createError from "http-errors"
-import UsersModel from "./schema.js"
+import { generateJwt } from "../../utils/auth/jwt.js"
+import UserModel from "./schema.js"
+import { userValidationRules, validate } from "../../utils/validation/index.js"
+
 
 const userRouter = express.Router()
 
+userRouter.post('/login', async (req, res, next) => {
+
+  try {
+      const { email, password } = req.body
+
+      if (!email || !password) {
+          const error = new Error("Missing credentials.")
+          error.status = 400
+
+          throw error
+      }
+
+      const user = await UserModel.findByCredentials(email, password)
+
+      if (!user) {
+          const error = new Error("No email/password match.")
+          error.status = 400
+
+          throw error
+      }
+
+      const token = await generateJwt({ id: user._id })
+
+      res.status(200).send({ token })
+  } catch (error) {
+      next(error)
+  }
+
+})
+
+userRouter.post("/register", 
+userValidationRules(),
+validate,
+async (req, res, next) => {
+  try {
+      const user = await new UserModel(req.body).save();
+      delete user._doc.password
+
+      const token = await generateJwt({ id: user._id })
+
+      res.send({ user, token })
+  } catch (error) {
+      console.log({ error });
+      res.send(500).send({ message: error.message });
+  }
+});
+
+// CREATE USER
 userRouter.post("/", async (req, res, next) => {
   try {
 
-    const newAuthor = new AuthorModel(req.body)
-    const { _id } = await newAuthor.save()
+    const newUser = new UserModel(req.body)
+    const { _id } = await newUser.save()
 
     res.status(201).send({ _id })
 
@@ -27,98 +78,103 @@ userRouter.post("/", async (req, res, next) => {
   }
 })
 
+// GET ALL USERS
 userRouter.get("/", async (req, res, next) => {
   try {
 
-    const authors = await AuthorModel.find()
+    const users = await UserModel.find()
 
-    res.send(authors)
+    res.send(users)
 
   } catch (error) {
 
-    next(createError(500, "An error occurred while getting authors' list "))
+    next(createError(500, "An error occurred while getting users' list "))
 
   }
 })
 
-userRouter.get("/:authorId", async (req, res, next) => {
+// GET USER BY ID
+userRouter.get("/:userId", async (req, res, next) => {
   try {
 
-    const authorId = req.params.authorId
+    const userId = req.params.userId
 
-    const author = await AuthorModel.findById(authorId)
+    const user = await UserModel.findById(userId)
 
-    if (author) {
-      res.send(author)
+    if (user) {
+      res.send(user)
     } else {
-      next(createError(404, `Author with _id ${authorId} not found!`))
+      next(createError(404, `User with _id ${userId} not found!`))
     }
   } catch (error) {
-    next(createError(500, "An error occurred while getting author"))
+    next(createError(500, "An error occurred while getting user"))
   }
 })
 
-userRouter.delete("/:authorId", async (req, res, next) => {
+// DELETE USER BY ID
+userRouter.delete("/:userId", async (req, res, next) => {
   try {
-    const authorId = req.params.authorId
+    const userId = req.params.userId
 
-    const deletedAuthor = await AuthorModel.findByIdAndDelete(authorId)
+    const deletedUser = await UserModel.findByIdAndDelete(userId)
 
-    if (deletedAuthor) {
+    if (deletedUser) {
       res.status(204).send()
     } else {
-      next(createError(404, `Author with _id ${authorId} not found!`))
+      next(createError(404, `User with _id ${userId} not found!`))
     }
   } catch (error) {
-    next(createError(500, `An error occurred while deleting author ${req.params.authorId}`))
+    next(createError(500, `An error occurred while deleting user ${req.params.userId}`))
   }
 })
 
-userRouter.put("/:authorId", async (req, res, next) => {
+// EDIT USER BY ID
+userRouter.put("/:userId", async (req, res, next) => {
   try {
-    const authorId = req.params.authorId
+    const userId = req.params.userId
 
-    const updatedAuthor = await AuthorModel.findByIdAndUpdate(authorId, req.body, {
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, req.body, {
       new: true, // to use existing record n
       runValidators: true,
     })
 
-    if (updatedAuthor) {
-      res.send(updatedAuthor)
+    if (updatedUser) {
+      res.send(updatedUser)
     } else {
-      next(createError(404, `Author with _id ${authorId} not found!`))
+      next(createError(404, `User with _id ${userId} not found!`))
     }
   } catch (error) {
-    next(createError(500, `An error occurred while updating author ${req.params.authorId}`))
+    next(createError(500, `An error occurred while updating user ${req.params.userId}`))
   }
 })
 
-userRouter.get("/:authorId/blogs/", async (req, res, next) => {
+// GET ALL BLOGS BY USER
+userRouter.get("/:userId/blogs/", async (req, res, next) => {
   try {
 
-    const authorId = req.params.authorId
+    const userId = req.params.userId
 
-    console.log(authorId)
+    console.log(userId)
 
-    const authorSearch = String(authorId)
+    const userSearch = String(userId)
 
-    console.log(authorSearch)
+    console.log(userSearch)
 
-    const blogsByAuthor = await BlogModel.find({ author: { $in: authorSearch }}, 
+    const blogsByUser = await BlogModel.find({ user: { $in: userSearch }}, 
     function(err, result) {
       if (err) {
         res.send(err);
       }
       })
 
-    if (blogsByAuthor) {
-      console.log(blogsByAuthor)
-      res.send(blogsByAuthor)
+    if (blogsByUser) {
+      console.log(blogsByUser)
+      res.send(blogsByUser)
     } else {
-      next(createError(404, `Author with _id ${authorId} not found!`))
+      next(createError(404, `User with _id ${userId} not found!`))
     }
   } catch (error) {
-    next(createError(500, "An error occurred while getting author"))
+    next(createError(500, "An error occurred while getting user"))
   }
 })
 

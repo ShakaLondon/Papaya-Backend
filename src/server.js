@@ -2,9 +2,13 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import fs from "fs"
-import path from "path"
 import bodyParser from "body-parser"
 import listEndpoints from "express-list-endpoints";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
+
+// ROUTES
+import userRouter from "../src/services/users/index.js"
 
 // MIDDLEWARE ERROR HANDLERS
 import {
@@ -13,15 +17,41 @@ import {
   notFoundMiddleware,
 } from "./errorHandlers.js";
 
-// const publicFolderPath = join(getCurrentFolderPath(import.meta.url), "../public")
+const __filename = fileURLToPath(import.meta.url);
+
+const __dirname = dirname(__filename);
+
+const publicDirectory = path.join(__dirname, "../public");
 
 const server = express();
-const PORT = process.env.PORT || 3000;
+
+const PORT = process.env.PORT || 3005;
+
+
+
+// const whiteList = ["http://localhost:3005"];
+// const corsOptions = {
+//   origin: (origin, callback) => {
+//     if (whiteList.some((allowedUrl) => allowedUrl === origin)) {
+//       callback(null, true);
+//     } else {
+//       const error = new Error("Not allowed by cors!");
+//       error.status = 403;
+
+//       callback(error);
+//     }
+//   },
+// };
 
 
 // server.use(express.static(publicFolderPath))
 server.use(cors());
+
 server.use(express.json());
+
+server.use(express.static(publicDirectory));
+
+server.use("/users", userRouter);
 
 
 // TELL SERVER YOU WANT TO USE THIS
@@ -33,7 +63,8 @@ server.use(catchAllErrorHandler);
 // MIDDLEWARES
 
 console.table(listEndpoints(server));
-// console.log(listEndpoints(server)) TO SHOW AS A LIST
+
+
 
 server.listen(PORT, async () => {
   try {

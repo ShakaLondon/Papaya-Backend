@@ -1,5 +1,5 @@
 import atob from "atob"
-import AuthorModel from "../../authors/schema.js"
+import UserModel from "../../authors/schema.js"
 
 // basic middleware
 
@@ -16,7 +16,7 @@ const basicMiddleware = async (req, res, next) => {
 
     console.log({ email, password })
 
-    const user = await AuthorModel.findByCredentials(email, password)
+    const user = await UserModel.findByCredentials(email, password)
 
     req.user = user
 

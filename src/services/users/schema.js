@@ -15,6 +15,7 @@ const UserSchema = new Schema(
     username: {
       type: String,
       required: true,
+      unique: true,
     },
     dateOfBirth:{
       type: Date,
@@ -27,6 +28,13 @@ const UserSchema = new Schema(
     avatar:{
       type: String,
       required: true,
+      default: "https://ui-avatars.com/api/?name=Unnamed+User",
+    },
+    role: {
+      type: String,
+      required: true,
+      enum: ['Admin', 'User', 'Business'],
+      default: "User"
     }
   },
   {
@@ -47,7 +55,7 @@ UserSchema.pre("save", async function (done) {
 
 UserSchema.statics.findByCredentials = async function (email, password) {
 
-  const user = await AuthorModel.findOne({ email })
+  const user = await UserModel.findOne({ email })
 
   try {
     if (await bcrypt.compare(password, user.password))
@@ -56,6 +64,7 @@ UserSchema.statics.findByCredentials = async function (email, password) {
 
   return null
 }
+
 
 export default model("Users", UserSchema) // bounded to "users" collection
 
