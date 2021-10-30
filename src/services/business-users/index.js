@@ -1,17 +1,17 @@
 import express from "express"
 import createError from "http-errors"
 import { generateJwt, JwtMiddleware } from "../../utils/auth/jwt.js"
-import UserModel from "./schema.js"
+import BusinessUserModel from "./schema.js"
 import ReviewModel from "../reviews/schema.js"
-import { userValidationRules, validate } from "../../utils/validation/index.js"
+import { userBusinessValidationRules, validate } from "../../utils/validation/index.js"
 import { adminOnly } from "../../utils/auth/adminOnly.js"
 // import { onlyOwner } from "../../utils/auth/onlyOwner.js"
 
 
-const userRouter = express.Router()
+const businessUserRouter = express.Router()
 
-// LOGIN ✅
-userRouter.post('/me', async (req, res, next) => {
+// BUSINESS USER LOGIN
+businessUserRouter.post('/business/login', async (req, res, next) => {
 
   try {
       const { email, password } = req.body
@@ -43,13 +43,13 @@ userRouter.post('/me', async (req, res, next) => {
 
 })
 
-// REGISTER ✅
-userRouter.post("/register", 
-userValidationRules(),
+// BUSINESS USER REGISTER
+businessUserRouter.post("/business/register", 
+userBusinessValidationRules(),
 validate,
 async (req, res, next) => {
   try {
-      const user = await new UserModel(req.body).save();
+      const user = await new BusinessUserModel(req.body).save();
       delete user._doc.password
 
       const token = await generateJwt({ id: user._id })
@@ -61,8 +61,8 @@ async (req, res, next) => {
   }
 });
 
-// GET REVIEWS FOR USER 
-userRouter.get('/me/reviews',
+// BUSINESS USER GET REVIEWS FOR BUSINESS
+businessUserRouter.get('/business/reviews',
 JwtMiddleware,
 async (req, res, next) => {
 
@@ -77,8 +77,8 @@ async (req, res, next) => {
 
 })
 
-// EDIT ONE REVIEW FOR USER
-userRouter.put('/me/reviews/:reviewID',
+// BUSINESS USER EDIT REVIEWS TO ADD RESPONSE
+businessUserRouter.put('/business/reviews/:reviewID',
 JwtMiddleware,
 async (req, res, next) => {
 
@@ -102,31 +102,10 @@ async (req, res, next) => {
 
 })
 
-// DELETE ONE REVIEW FOR USER
-userRouter.delete('/me/reviews/:reviewID',
-JwtMiddleware,
-async (req, res, next) => {
-
-  try {
-    const reviewID = req.params.reviewID
-
-    const deletedReview = await ReviewModel.findByIdAndDelete(reviewID)
-
-    if (deletedReview) {
-      res.status(204).send()
-    } else {
-      next(createError(404, `User with _id ${userId} not found!`))
-    }
-  } catch (error) {
-    next(createError(500, `An error occurred while deleting user ${req.params.userId}`))
-  }
-
-})
 
 
-
-// CREATE USER ✅
-userRouter.post("/",
+// CREATE BUSINESS USER
+businessUserRouter.post("/business",
 JwtMiddleware,
 adminOnly,
 async (req, res, next) => {
@@ -152,8 +131,8 @@ async (req, res, next) => {
   }
 })
 
-// GET ALL USERS ✅
-userRouter.get("/",
+// GET ALL BUSINESS USERS
+businessUserRouter.get("/business",
 JwtMiddleware,
 adminOnly,
 async (req, res, next) => {
@@ -170,8 +149,8 @@ async (req, res, next) => {
   }
 })
 
-// GET USER BY ID ✅
-userRouter.get("/:userId",
+// GET BUSINESS BY ID
+businessUserRouter.get("/business/:businessID",
 JwtMiddleware,
 adminOnly,
 async (req, res, next) => {
@@ -191,8 +170,8 @@ async (req, res, next) => {
   }
 })
 
-// DELETE USER BY ID ✅
-userRouter.delete("/:userId",
+// DELETE USER BY ID
+businessUserRouter.delete("/business/:businessID",
 JwtMiddleware,
 adminOnly,
 async (req, res, next) => {
@@ -211,8 +190,8 @@ async (req, res, next) => {
   }
 })
 
-// EDIT USER BY ID ✅
-userRouter.put("/:userId",
+// EDIT BUSINESS BY ID
+businessUserRouter.put("/business/:businessID",
 JwtMiddleware,
 adminOnly,
 async (req, res, next) => {
@@ -234,37 +213,4 @@ async (req, res, next) => {
   }
 })
 
-// GET ALL BLOGS BY USER ✅
-userRouter.get("/:userId/reviews/",
-JwtMiddleware,
-adminOnly,
-async (req, res, next) => {
-  try {
-
-    const userId = req.params.userId
-
-    console.log(userId)
-
-    const userSearch = String(userId)
-
-    console.log(userSearch)
-
-    const reviewsByUser = await ReviewModel.find({ userID: { $in: userSearch }}, 
-    function(err, result) {
-      if (err) {
-        res.send(err);
-      }
-      })
-
-    if (reviewsByUser) {
-      console.log(reviewsByUser)
-      res.send(reviewsByUser)
-    } else {
-      next(createError(404, `User with _id ${userId} not found!`))
-    }
-  } catch (error) {
-    next(createError(500, "An error occurred while getting user"))
-  }
-})
-
-export default userRouter
+export default businessUserRouter

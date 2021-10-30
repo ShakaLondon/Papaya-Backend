@@ -3,7 +3,7 @@ import bcrypt from "bcrypt"
 
 const { Schema, model } = mongoose
 
-const UserSchema = new Schema(
+const BusinessUserSchema = new Schema(
   {
     name: {
       type: String,
@@ -21,11 +21,15 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    dateOfBirth:{
+    jobTitle:{
       type: Date,
       required: true,
     },
     email: {
+      type: String,
+      required: true,
+    },
+    website: {
       type: String,
       required: true,
     },
@@ -40,9 +44,13 @@ const UserSchema = new Schema(
       enum: ['Admin', 'User', "Business"],
       default: "User"
     },
-    reviews: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Reviews"
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
+    businessID: [{
+      type: String,
+      ref: "Business"
     }],
   },
   {
@@ -50,7 +58,7 @@ const UserSchema = new Schema(
   }
 )
 
-UserSchema.pre("save", async function (done) {
+BusinessUserSchema.pre("save", async function (done) {
   this.avatar = `https://ui-avatars.com/api/?name=${this.name}+${this.surname}`;
   // hash password
   if (this.isModified("password")) {
@@ -59,7 +67,7 @@ UserSchema.pre("save", async function (done) {
   done();
 });
 
-UserSchema.methods.toJSON = function () {
+BusinessUserSchema.methods.toJSON = function () {
   // console.log(this)
   // toJSON  is called every time res send is sent 
   const userDocument = this
@@ -79,7 +87,7 @@ UserSchema.methods.toJSON = function () {
 
 // static: find using credentials
 
-UserSchema.statics.findByCredentials = async function (email, password) {
+BusinessUserSchema.statics.findByCredentials = async function (email, password) {
 
   const user = await this.findOne({ email })
 
@@ -100,7 +108,7 @@ UserSchema.statics.findByCredentials = async function (email, password) {
 }
 
 
-export default model("Users", UserSchema) // bounded to "users" collection
+export default model("BusinessUsers", BusinessUserSchema) // bounded to "users" collection
 
 // seperate crud for embeded values check purchase history in riccardos code
 

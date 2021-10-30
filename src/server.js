@@ -9,6 +9,9 @@ import { fileURLToPath } from "url";
 
 // ROUTES
 import userRouter from "../src/services/users/index.js"
+import reviewRouter from "../src/services/reviews/index.js"
+import businessRouter from "../src/services/business/index.js"
+import businessUserRouter from "../src/services/business-users/index.js"
 
 // MIDDLEWARE ERROR HANDLERS
 import {
@@ -52,6 +55,9 @@ server.use(express.json());
 server.use(express.static(publicDirectory));
 
 server.use("/users", userRouter);
+server.use("/reviews", reviewRouter);
+server.use("/business", businessRouter);
+server.use("/business/users", businessUserRouter);
 
 
 // TELL SERVER YOU WANT TO USE THIS
