@@ -3,10 +3,11 @@ import createError from "http-errors"
 import { generateJwt, JwtMiddleware } from "../../utils/auth/jwt.js"
 import UserModel from "./schema.js"
 import ReviewModel from "../reviews/schema.js"
-import { userValidationRules, validate } from "../../utils/validation/index.js"
+import validations from "../../utils/validation/index.js"
 import { adminOnly } from "../../utils/auth/adminOnly.js"
 // import { onlyOwner } from "../../utils/auth/onlyOwner.js"
 
+const { userValidationRules, reviewValidationRules, validate } = validations
 
 const userRouter = express.Router()
 
@@ -91,13 +92,13 @@ async (req, res, next) => {
     runValidators: true,
   })
 
-  if (updatedUser) {
-    res.send(updatedUser)
+  if (updatedReview) {
+    res.send(updatedReview)
   } else {
-    next(createError(404, `User with _id ${userId} not found!`))
+    next(createError(404, `User with _id ${reviewID} not found!`))
   }
 } catch (error) {
-  next(createError(500, `An error occurred while updating user ${req.params.userId}`))
+  next(createError(500, `An error occurred while updating user ${req.params.reviewID}`))
 }
 
 })
@@ -115,10 +116,48 @@ async (req, res, next) => {
     if (deletedReview) {
       res.status(204).send()
     } else {
-      next(createError(404, `User with _id ${userId} not found!`))
+      next(createError(404, `User with _id ${reviewID} not found!`))
     }
   } catch (error) {
-    next(createError(500, `An error occurred while deleting user ${req.params.userId}`))
+    next(createError(500, `An error occurred while deleting user ${req.params.reviewID}`))
+  }
+
+})
+
+// ADD ONE REVIEW FOR USER FOR BUSINESS
+userRouter.post('/me/reviews/business/:businessID',
+JwtMiddleware,
+reviewValidationRules(),
+validate,
+async (req, res, next) => {
+
+  try {
+    const businessID = req.params.businessID
+
+    const newReview = new ReviewModel({...req.body, userID: req.user._id})
+    const { _id } = await newReview.save()
+
+    const updatedBusiness = await BusinessModel.findByIdAndUpdate(businessID, { $push: { reviewIDs: _id } }, {
+      new: true, // to use existing record n
+      runValidators: true,
+    })
+
+    const updatedUser = await UserModel.findByIdAndUpdate(req.user._id, { $push: { reviewIDs: _id } }, {
+      new: true, // to use existing record n
+      runValidators: true,
+    })
+
+    res.status(201).send({ _id })
+
+    const deletedReview = await ReviewModel.findByIdAndDelete(reviewID)
+
+    if (deletedReview) {
+      res.status(204).send()
+    } else {
+      next(createError(404, `User with _id ${reviewID} not found!`))
+    }
+  } catch (error) {
+    next(createError(500, `An error occurred while deleting user ${req.params.reviewID}`))
   }
 
 })
@@ -129,6 +168,8 @@ async (req, res, next) => {
 userRouter.post("/",
 JwtMiddleware,
 adminOnly,
+userValidationRules(),
+validate,
 async (req, res, next) => {
   try {
 

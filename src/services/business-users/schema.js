@@ -22,7 +22,7 @@ const BusinessUserSchema = new Schema(
       required: true,
     },
     jobTitle:{
-      type: Date,
+      type: String,
       required: true,
     },
     email: {
@@ -42,16 +42,24 @@ const BusinessUserSchema = new Schema(
       type: String,
       required: true,
       enum: ['Admin', 'User', "Business"],
-      default: "User"
+      default: "Business"
     },
     phoneNumber: {
-      type: String,
+      type: Number,
       required: true,
     },
-    businessID: [{
-      type: String,
+    businessName: {
+        type: String,
+        required: true,
+      },
+    category: {
+        type: String,
+        required: true,
+      },
+    businessID: {
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Business"
-    }],
+    },
   },
   {
     timestamps: true, // adding createdAt and modifiedAt automatically

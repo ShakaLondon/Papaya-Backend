@@ -54,10 +54,11 @@ server.use(express.json());
 
 server.use(express.static(publicDirectory));
 
+server.use("/users", businessUserRouter);
 server.use("/users", userRouter);
 server.use("/reviews", reviewRouter);
 server.use("/business", businessRouter);
-server.use("/business/users", businessUserRouter);
+
 
 
 // TELL SERVER YOU WANT TO USE THIS

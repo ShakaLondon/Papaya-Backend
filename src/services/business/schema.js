@@ -25,7 +25,7 @@ const BusinessSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Reviews"
     }],
-    businessUserID:{
+    businessUserID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
     }

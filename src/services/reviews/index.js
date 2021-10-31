@@ -1,15 +1,37 @@
 import express from "express"
 import createError from "http-errors"
-
 import ReviewModel from "./schema.js"
 import UserModel from "../users/schema.js"
+import BusinessModel from "../business/schema.js"
+import validations from "../../utils/validation/index.js"
+import { adminOnly } from "../../utils/auth/adminOnly.js"
+import { JwtMiddleware } from "../../utils/auth/jwt.js"
+
+const { reviewValidationRules, validate } = validations
 
 const reviewRouter = express.Router()
 
-reviewRouter.post("/", async (req, res, next) => {
+// CREATE REVIEW ✅
+reviewRouter.post("/",
+JwtMiddleware,
+reviewValidationRules(),
+validate,
+adminOnly,
+async (req, res, next) => {
   try {
-    const newBlog = new ReviewModel(req.body)
-    const { _id } = await newBlog.save()
+    const newReview = new ReviewModel(req.body)
+    const { _id, businessID, userID } = await newReview.save()
+    console.log(userID)
+
+    const business = await BusinessModel.findByIdAndUpdate(businessID, { $push: { reviewIDs: _id } },
+      { new: true, 
+        runValidators: true }
+  )
+
+  const user = await UserModel.findByIdAndUpdate(userID, { $push: { reviews: _id } },
+    { new: true, 
+      runValidators: true }
+)
 
     res.status(201).send({ _id })
 
@@ -28,14 +50,16 @@ reviewRouter.post("/", async (req, res, next) => {
   }
 })
 
-reviewRouter.get("/", async (req, res, next) => {
+// GET ALL REVIEWS ✅
+reviewRouter.get("/",
+JwtMiddleware,
+adminOnly,
+async (req, res, next) => {
   try {
 
-    const query = q2m(req.query)
+    const reviews = await ReviewModel.find()
 
-    const { total, blogs } = await ReviewModel.findBlogsWithAuthors(query)
-    // No matter how you apply skip, limit, sort methods, the order will always be SORT, SKIP, LIMIT
-    res.send({ links: query.links("/blogs", total), total, blogs })
+    res.send(reviews)
 
   } catch (error) {
 
@@ -44,258 +68,79 @@ reviewRouter.get("/", async (req, res, next) => {
   }
 })
 
-reviewRouter.get("/:blogId", async (req, res, next) => {
+// GET SINGLE REVIEW
+reviewRouter.get("/:reviewID",
+JwtMiddleware,
+adminOnly, 
+async (req, res, next) => {
   try {
 
-    const blogId = req.params.blogId
+    const reviewID = req.params.reviewID
 
-    const author = await ReviewModel.findBlogWithAuthors(blogId)
+    const review = await ReviewModel.findById(reviewID)
 
-    if (author) {
-      res.send(author)
+    if (review) {
+      res.send(review)
     } else {
-      next(createError(404, `Blog with _id ${blogId} not found!`))
+      next(createError(404, `Blog with _id ${reviewID} not found!`))
     }
   } catch (error) {
     next(createError(500, "An error occurred while getting blog"))
   }
 })
 
-// reviewRouter.post("/:blogId/uploadCover", multer({
-//   fileFilter: (req, file, multerNext) => {
-//     if (file.mimetype !== "image/gif") {
-//       return multerNext(createError(400, "Only GIF allowed!"))
-//     } else {
-//       return multerNext(null, true)
-//     }
-//   },
-// }).single("avatar"),
-// async (req, res, next) => {
-//   try {
-//     console.log(req.file)
-
-//     await writeUsersPicture(req.file.originalname, req.file.buffer)
-//     res.send("Cover uploaded!")
-//   } catch (error) {
-//     next(error)
-//   }
-// })
-
-reviewRouter.post("/search", async (req, res, next) => {
+// DELETE SINGLE REVIEW ✅
+reviewRouter.delete("/:reviewID",
+JwtMiddleware,
+adminOnly, 
+async (req, res, next) => {
   try {
+    const reviewID = req.params.reviewID
 
-    const searchInput  = req.query.searchQuery
+    const { _id, userID } = await ReviewModel.findById(reviewID)
 
-    console.log(searchInput)
+    const business = await BusinessModel.findByIdAndUpdate(_id, { $pull: { reviewIDs: reviewID } },
+      { new: true, 
+        runValidators: true }
+  )
 
-    const searchQ = searchInput.replace(/_/g, ' ')
+  const user = await UserModel.findByIdAndUpdate(userID, { $pull: { reviews: reviewID } },
+    { new: true, 
+      runValidators: true }
+)
 
-    console.log(searchQ)
+  const deletedReview = await ReviewModel.findByIdAndDelete(reviewID)
 
-    // var stream = collection.find({"FirstName": new RegExp(val)}).stream();
-
-    // let query = [
-    //   {"title": {$regex: new RegExp(searchQ)}},
-    //   {"category": {$regex: new RegExp(searchQ)}},
-    //   {"content": {$regex: new RegExp(searchQ)}},
-    //   {"author": {"name": { $regex: new RegExp(searchQ)},
-    //             "surname": { $regex: new RegExp(searchQ)}} }
-    //   ]
-
-    // const searchResult = await BlogModel.find(
-    //   { $or: query }, function(err, result) {
-    //     if (err) {
-    //       res.send(err);
-    //     } else {
-    //       res.send(result);
-    //     }
-      // title: $SearchQ,
-      // category: 'Commander',
-      // content: '',
-      // authors : { name: "reservations@marriott.com",
-      //             surname: "" }
-      
-      const searchResult = await ReviewModel.find(
-        { $or: [{title: new RegExp(searchQ)}, {category: new RegExp(searchQ)}, {content: new RegExp(searchQ)}, {"author.name": new RegExp(searchQ)}, {"author.surname": new RegExp(searchQ)}]}, 
-        function(err, result) {
-          if (err) {
-            res.send(err);
-          }
-          })
-
-      // const authorSearch = await AuthorModel.find({ $or: [{name: new RegExp(searchQ)}, {surname: new RegExp(searchQ)}]},
-      // function(err, result) {
-      //   if (err) {
-      //     res.send(err);
-      //   }})
-
-      console.log(searchResult)
-
-    if (searchResult) {
-      res.send(searchResult)
-    } else {
-      next(createError(404, `Query: No results found for ${req.query.searchQuery}!`))
-    }
-  } catch (error) {
-    next(createError(500, "An error occurred while getting blog"))
-  }
-})
-
-reviewRouter.delete("/:blogId", async (req, res, next) => {
-  try {
-    const blogId = req.params.blogId
-
-    const deletedBlog = await ReviewModel.findByIdAndDelete(blogId)
-
-    if (deletedBlog) {
+    if (deletedReview) {
       res.status(204).send()
     } else {
-      next(createError(404, `Blog with _id ${blogId} not found!`))
+      next(createError(404, `Blog with _id ${reviewID} not found!`))
     }
   } catch (error) {
-    next(createError(500, `An error occurred while deleting blog ${req.params.deletedBlog}`))
+    next(createError(500, `An error occurred while deleting blog ${req.params.reviewID}`))
   }
 })
 
-reviewRouter.put("/:blogId", async (req, res, next) => {
+// EDIT SINGLE REVIEW ✅
+reviewRouter.put("/:reviewID",
+JwtMiddleware,
+adminOnly, 
+async (req, res, next) => {
   try {
-    const blogId = req.params.blogId
+    const reviewID = req.params.reviewID
 
-    const updatedBlog = await ReviewModel.findByIdAndUpdate(blogId, req.body, {
+    const updatedReview = await ReviewModel.findByIdAndUpdate(reviewID, req.body, {
       new: true,
       runValidators: true,
     })
 
-
-    if (updatedBlog) {
-      res.send(updatedBlog)
+    if (updatedReview) {
+      res.send(updatedReview)
     } else {
-      next(createError(404, `Blog with _id ${blogId} not found!`))
+      next(createError(404, `Blog with _id ${reviewID} not found!`))
     }
   } catch (error) {
-    next(createError(500, `An error occurred while updating blog ${req.params.blogId}`))
-  }
-})
-
-//  COMMENTS // REVIEWS
-
-reviewRouter.post("/:blogId/comments", async (req, res, next) => {
-  try {
-    // Given a book ID (req.body.blogId) we need to insert it into the purchase history array of the specified blog (req.params.blogId)
-    // 1. Find book by id
-    const blogId = req.body.blogId
-
-    const commentAdd = await BookModel.findById(blogId, { _id: 0 })
-
-    if (commentAdd) {
-      // 2. Add additional properties to the book object (purchase date)
-      const commentToInsert = { ...commentAdd.toObject(), commentDate: new Date() } // purchasedBook is a DOCUMENT not an object therefore I need to convert it into a JS Object with toObject() method
-
-      // 3. Modify the specified blog by adding the book to the array
-
-      const updatedBlog = await ReviewModel.findByIdAndUpdate(
-        req.params.blogId, // who you want to modify
-        { $push: { comments: commentToInsert } }, // how you want to modify him/her (adding an element to the array)
-        {
-          // options
-          new: true,
-          runValidators: true,
-        }
-      )
-      if (updatedBlog) {
-        res.send(updatedBlog)
-      } else {
-        next(createError(404, "Blog not found!"))
-      }
-    } else {
-      next(createError(404, "Book not found!"))
-    }
-  } catch (error) {
-    next(createError(500, "Generic Error"))
-  }
-})
-
-reviewRouter.get("/:blogId/comments", async (req, res, next) => {
-  try {
-    const blog = await BlogModel.findById(req.params.blogId)
-    if (blog) {
-      res.send(blog.comments)
-    } else {
-      next(createError(404, "Blog not found!"))
-    }
-  } catch (error) {
-    next(createError(500, "Generic Error"))
-  }
-})
-
-reviewRouter.get("/:blogId/comments/:commentId", async (req, res, next) => {
-  try {
-    const blog = await ReviewModel.findById(req.params.blogId, {
-      // first param is id, second is projection
-      // comments: { $elemMatch: { _id: req.params.commentId } },
-    })
-
-    console.log(blog.comments.find(p => p._id.toString() === req.params.commentId))
-
-    if (blog) {
-      if (blog.comments.length > 0) {
-        res.send(blog.comments[0])
-      } else {
-        next(createError(404, "Book not found in purchase history!"))
-      }
-    } else {
-      next(createError(404, "blog not found!"))
-    }
-  } catch (error) {
-    next(createError(500, "Generic Error"))
-  }
-})
-
-reviewRouter.delete("/:blogId/comments/:commentId", async (req, res, next) => {
-  try {
-    const blog = await ReviewModel.findByIdAndUpdate(
-      req.params.blogId, // who you want to modify
-      {
-        $pull: {
-          comments: { _id: req.params.commentId }, // how you want to modify him/her (removing an element from the array)
-        },
-      },
-      { new: true } // options
-    )
-    if (blog) {
-      res.send(blog)
-    } else {
-      next(createError(404, "Blog not found!"))
-    }
-  } catch (error) {
-    next(createError(500, "Generic Error"))
-  }
-})
-
-reviewRouter.put("/:blogId/comments/:commentId", async (req, res, next) => {
-  try {
-    const blog = await ReviewModel.findOneAndUpdate(
-      {
-        _id: req.params.blogId,
-        "comments._id": req.params.commentId,
-      },
-      {
-        $set: {
-          "comments.$": req.body, // $ --> POSITIONAL OPERATOR https://docs.mongodb.com/manual/reference/operator/update/positional/#mongodb-update-up.-
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    )
-    if (blog) {
-      res.send(blog)
-    } else {
-      next(createError(404, "Blog not found!"))
-    }
-  } catch (error) {
-    next(createError(500, "Generic Error"))
+    next(createError(500, `An error occurred while updating blog ${req.params.reviewID}`))
   }
 })
 

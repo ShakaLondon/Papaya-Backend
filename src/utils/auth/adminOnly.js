@@ -8,3 +8,12 @@ export const adminOnly = (req, res, next) => {
         next(createHttpError(403))
     }
 }
+
+export const businessOnly = (req, res, next) => {
+    if (req.user.role === "Business") {
+        console.log(req.user, "businessonly")
+        next()
+    } else {
+        next(createHttpError(403))
+    }
+}

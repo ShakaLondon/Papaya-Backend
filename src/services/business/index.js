@@ -3,15 +3,16 @@ import createError from "http-errors"
 import { generateJwt, JwtMiddleware } from "../../utils/auth/jwt.js"
 import BusinessModel from "./schema.js"
 import ReviewModel from "../reviews/schema.js"
-import { businessValidationRules, validate } from "../../utils/validation/index.js"
+import validations from "../../utils/validation/index.js"
 import { adminOnly } from "../../utils/auth/adminOnly.js"
 import { businessUserOnly } from "../../utils/auth/businessUserOnly.js"
 // import { onlyOwner } from "../../utils/auth/onlyOwner.js"
 
+const { businessValidationRules, validate } = validations
 
 const businessRouter = express.Router()
 
-// CREATE BUSINESS
+// CREATE BUSINESS ✅
 businessRouter.post("/",
 JwtMiddleware,
 businessValidationRules(),
@@ -40,7 +41,7 @@ async (req, res, next) => {
   }
 })
 
-// GET ALL BUSINESSES
+// GET ALL BUSINESSES ✅
 businessRouter.get("/",
 JwtMiddleware,
 adminOnly,
@@ -58,7 +59,7 @@ async (req, res, next) => {
   }
 })
 
-// GET BUSINESS BY ID
+// GET BUSINESS BY ID ✅
 businessRouter.get("/:businessID",
 JwtMiddleware,
 adminOnly,
@@ -67,7 +68,7 @@ async (req, res, next) => {
 
     const businessID = req.params.businessID
 
-    const business = await UserModel.findById(businessID)
+    const business = await BusinessModel.findById(businessID)
 
     if (business) {
       res.send(business)
@@ -79,7 +80,7 @@ async (req, res, next) => {
   }
 })
 
-// DELETE BUSINESS BY ID
+// DELETE BUSINESS BY ID ✅
 businessRouter.delete("/:businessID",
 JwtMiddleware,
 adminOnly,
@@ -99,7 +100,7 @@ async (req, res, next) => {
   }
 })
 
-// EDIT BUSINESS BY ID
+// EDIT BUSINESS BY ID ✅
 businessRouter.put("/:businessID",
 JwtMiddleware,
 adminOnly,
@@ -107,7 +108,7 @@ async (req, res, next) => {
   try {
     const businessID = req.params.businessID
 
-    const updatedUser = await UserModel.findByIdAndUpdate(businessID, req.body, {
+    const updatedUser = await BusinessModel.findByIdAndUpdate(businessID, req.body, {
       new: true, // to use existing record n
       runValidators: true,
     })

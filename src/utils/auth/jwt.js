@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"
 import UserModel from "../../services/users/schema.js"
+import BusinessUserModel from "../../services/business-users/schema.js"
 
 // Generate JWT tokens when we are authenticating one of our users
 
@@ -31,9 +32,11 @@ export function verifyJwt(token) {
 export async function JwtMiddleware(req, res, next) {
     try {
         if (!req.headers.authorization) {
+
             const error = new Error('No auth headers')
             error.status = 401
             next(error)
+            
         } else {
             const token = req.headers.authorization.replace("Bearer ", '')
 
@@ -42,6 +45,21 @@ export async function JwtMiddleware(req, res, next) {
             const decoded = await verifyJwt(token)
 
             console.log(decoded)
+
+            const role = req.body.role
+
+            if (role === "Business") {
+
+                const user = await BusinessUserModel.findById(decoded.id)
+
+                console.log(user)
+
+                req.user = user
+
+                next()
+
+            } else {
+
             const user = await UserModel.findById(decoded.id)
 
             console.log(user)
@@ -49,6 +67,8 @@ export async function JwtMiddleware(req, res, next) {
             req.user = user
 
             next()
+
+            }
 
         }
     } catch (error) {
