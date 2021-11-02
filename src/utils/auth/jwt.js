@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken"
 import UserModel from "../../services/users/schema.js"
 import BusinessUserModel from "../../services/business-users/schema.js"
 
+
+
 // Generate JWT tokens when we are authenticating one of our users
 
 // function generateJwt 
@@ -28,6 +30,20 @@ export function verifyJwt(token) {
         })
     })
 }
+
+// Catch Token Expiry Error
+
+const { TokenExpiredError } = jwt;
+
+const catchError = (err, res) => {
+  if (err instanceof TokenExpiredError) {
+    return res.status(401).send({ message: "Unauthorized! Access Token was expired!" });
+  }
+
+  return res.sendStatus(401).send({ message: "Unauthorized!" });
+}
+
+
 
 export async function JwtMiddleware(req, res, next) {
     try {
