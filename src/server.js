@@ -19,6 +19,7 @@ import {
   entryForbiddenMiddleware,
   notFoundMiddleware,
 } from "./errorHandlers.js";
+import tokenRouter from "./services/token/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -32,28 +33,33 @@ const PORT = process.env.PORT || 3005;
 
 
 
-// const whiteList = ["http://localhost:3005"];
-// const corsOptions = {
-//   origin: (origin, callback) => {
-//     if (whiteList.some((allowedUrl) => allowedUrl === origin)) {
-//       callback(null, true);
-//     } else {
-//       const error = new Error("Not allowed by cors!");
-//       error.status = 403;
+const whiteList = ["http://localhost:3000"];
+const corsOptions = {
+  origin: (origin, callback) => {
+    if 
+    // (whiteList.some((allowedUrl) => allowedUrl === origin)) 
+    (whiteList.indexOf(origin) !== -1 || !origin)
+    {
+      callback(null, true);
+    } else {
+      const error = new Error("Not allowed by cors!");
+      error.status = 403;
 
-//       callback(error);
-//     }
-//   },
-// };
+      callback(error);
+    }
+  },
+};
 
 
 // server.use(express.static(publicFolderPath))
-server.use(cors());
+server.use(cors(corsOptions));
 
 server.use(express.json());
+// server.use(express.urlencoded({ extended: true }));
 
 server.use(express.static(publicDirectory));
 
+server.use("/auth", tokenRouter);
 server.use("/users", businessUserRouter);
 server.use("/users", userRouter);
 server.use("/reviews", reviewRouter);

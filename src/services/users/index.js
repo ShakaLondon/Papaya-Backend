@@ -3,6 +3,8 @@ import createError from "http-errors"
 import { generateJwt, JwtMiddleware } from "../../utils/auth/jwt.js"
 import UserModel from "./schema.js"
 import ReviewModel from "../reviews/schema.js"
+import TokenModel from "../token/schema.js"
+
 import validations from "../../utils/validation/index.js"
 import { adminOnly } from "../../utils/auth/adminOnly.js"
 // import { onlyOwner } from "../../utils/auth/onlyOwner.js"
@@ -15,13 +17,14 @@ const userRouter = express.Router()
 userRouter.post('/me', async (req, res, next) => {
 
   try {
+
+    
       const { email, password } = req.body
 
-      if (!email || !password) {
-          const error = new Error("Missing credentials.")
-          error.status = 400
+      console.log(email + password + "Here babe")
 
-          throw error
+      if (!email || !password) {
+        return res.status(500).send({ message: "User Not found." });
       }
 
       const user = await UserModel.findByCredentials(email, password)
@@ -29,15 +32,24 @@ userRouter.post('/me', async (req, res, next) => {
       console.log(user)
 
       if (!user) {
-          const error = new Error("No email/password match.")
-          error.status = 400
-
-          throw error
+        return res.status(401).send({
+          accessToken: null,
+          message: "Invalid Credentials!",
+        })
       }
+
+
+      const userDocument = user
 
       const token = await generateJwt({ id: user._id })
 
-      res.status(200).send({ token })
+      const refreshToken = await TokenModel.createToken(userDocument);
+
+      res.status(200).send({ 
+        user,
+        accessToken: token,
+        refreshToken: refreshToken,
+      })
   } catch (error) {
       next(error)
   }
@@ -50,12 +62,34 @@ userValidationRules(),
 validate,
 async (req, res, next) => {
   try {
+
+      const userObj = req.body
+      console.log(userObj)
+
       const user = await new UserModel(req.body).save();
-      delete user._doc.password
+      // delete user._doc.password
+
+      console.log(user + "after database send")
 
       const token = await generateJwt({ id: user._id })
 
-      res.send({ user, token })
+      const refreshToken = await TokenModel.createToken(user);
+
+      res.status(200).send({ 
+        user: {
+          id: user._id,
+          name: user.name,
+          surname: user.surname,
+          username: user.username,
+          email: user.email,
+          avatar: user.avatar,
+          role: user.role,
+          reviews: user.reviews,
+        },
+        accessToken: token,
+        refreshToken: refreshToken,
+      })
+  
   } catch (error) {
       console.log({ error });
       res.send(500).send({ message: error.message });

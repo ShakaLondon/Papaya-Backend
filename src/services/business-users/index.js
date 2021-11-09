@@ -39,7 +39,16 @@ businessUserRouter.post('/business/me', async (req, res, next) => {
 
       const token = await generateJwt({ id: user._id })
 
-      res.status(200).send({ token })
+      const refreshToken = await RefreshModel.createToken(user);
+
+      res.status(200).send({ 
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        accessToken: token,
+        refreshToken: refreshToken,
+      })
   } catch (error) {
       next(error)
   }
@@ -72,9 +81,15 @@ async (req, res, next) => {
           runValidators: true,
         })
 
-        const token = await generateJwt({ id: businessUser._id })
+        const token = await generateJwt({ id: updateUser._id })
 
-        res.send({updateUser, token})
+        const refreshToken = await RefreshModel.createToken(updateUser);
+
+        res.status(200).send({ 
+          user,
+          accessToken: token,
+          refreshToken: refreshToken,
+        })
       }
 
       } else {
