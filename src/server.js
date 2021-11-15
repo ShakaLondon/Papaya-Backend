@@ -20,6 +20,7 @@ import {
   notFoundMiddleware,
 } from "./errorHandlers.js";
 import tokenRouter from "./services/token/index.js";
+import imageRouter from "./services/uploads/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -55,11 +56,13 @@ const corsOptions = {
 server.use(cors(corsOptions));
 
 server.use(express.json());
+
 // server.use(express.urlencoded({ extended: true }));
 
 server.use(express.static(publicDirectory));
 
 server.use("/auth", tokenRouter);
+server.use("/image", imageRouter);
 server.use("/users", businessUserRouter);
 server.use("/users", userRouter);
 server.use("/reviews", reviewRouter);

@@ -30,9 +30,9 @@ const UserSchema = new Schema(
       required: true,
     },
     avatar:{
-      type: String,
-      required: true,
-      default: "https://ui-avatars.com/api/?name=Unnamed+User",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Upload",
+      // default: "https://ui-avatars.com/api/?name=Unnamed+User",
     },
     role: {
       type: String,
@@ -51,7 +51,7 @@ const UserSchema = new Schema(
 )
 
 UserSchema.pre("save", async function (done) {
-  this.avatar = `https://ui-avatars.com/api/?name=${this.name}+${this.surname}`;
+  // this.avatar = `https://ui-avatars.com/api/?name=${this.name}+${this.surname}`;
   // hash password
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 12)
@@ -62,6 +62,10 @@ UserSchema.pre("save", async function (done) {
 UserSchema.methods.toJSON = function () {
   // console.log(this)
   // toJSON  is called every time res send is sent 
+  
+
+  // await this.populate(['avatar', 'reviews'])
+
   const userDocument = this
 
   const docObject = userDocument.toObject()

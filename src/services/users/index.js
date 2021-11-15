@@ -4,9 +4,10 @@ import { generateJwt, JwtMiddleware } from "../../utils/auth/jwt.js"
 import UserModel from "./schema.js"
 import ReviewModel from "../reviews/schema.js"
 import TokenModel from "../token/schema.js"
+import UploadModel from "../uploads/schema.js"
 
 import validations from "../../utils/validation/index.js"
-import { adminOnly } from "../../utils/auth/adminOnly.js"
+import { adminOnly, userOnly } from "../../utils/auth/adminOnly.js"
 // import { onlyOwner } from "../../utils/auth/onlyOwner.js"
 
 const { userValidationRules, reviewValidationRules, validate } = validations
@@ -37,6 +38,8 @@ userRouter.post('/me', async (req, res, next) => {
           message: "Invalid Credentials!",
         })
       }
+
+      await user.populate(['reviews', 'avatar'])
 
 
       const userDocument = user
@@ -71,20 +74,38 @@ async (req, res, next) => {
 
       console.log(user + "after database send")
 
+      const { _id } = await new UploadModel({
+        avatar: `https://ui-avatars.com/api/?name=${user.name}+${user.surname}`,
+        cover: "https://res.cloudinary.com/shakalondon/image/upload/v1636930471/default-header.jpg",
+        userID: user._id,
+      }).save();
+
+      const updatedUser = await UserModel.findByIdAndUpdate(user._id, { avatar: _id }, {
+        new: true, // to use existing record n
+        runValidators: true,
+      })
+
+      console.log(updatedUser + 'update')
+
+      await updatedUser.populate(['reviews', 'avatar'])
+
+
+
       const token = await generateJwt({ id: user._id })
 
       const refreshToken = await TokenModel.createToken(user);
 
       res.status(200).send({ 
-        user: {
-          id: user._id,
-          name: user.name,
-          surname: user.surname,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-          role: user.role,
-          reviews: user.reviews,
+        user: 
+        {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          surname: updatedUser.surname,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          avatar: updatedUser.avatar,
+          role: updatedUser.role,
+          reviews: updatedUser.reviews,
         },
         accessToken: token,
         refreshToken: refreshToken,
@@ -106,6 +127,33 @@ async (req, res, next) => {
 
     res.status(200).send(reviews)
 
+  } catch (error) {
+    next(error)
+  }
+
+})
+
+// UPDATE USER ✅
+userRouter.put('/me/update',
+JwtMiddleware,
+// userOnly,
+async (req, res, next) => {
+
+  try {
+    const userId = req.user._id
+
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, req.body, {
+      new: true, // to use existing record n
+      runValidators: true,
+    })
+
+    console.log(updatedUser + "updated")
+
+    if (updatedUser) {
+      res.status(200).send(updatedUser)
+    } else {
+      next(createError(404, `User with _id ${userId} not found!`))
+    }
   } catch (error) {
     next(error)
   }
