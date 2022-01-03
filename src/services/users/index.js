@@ -77,7 +77,7 @@ async (req, res, next) => {
       const { _id } = await new UploadModel({
         avatar: `https://ui-avatars.com/api/?name=${user.name}+${user.surname}`,
         cover: "https://res.cloudinary.com/shakalondon/image/upload/v1636930471/default-header.jpg",
-        userID: user._id,
+        profileID: user._id,
       }).save();
 
       const updatedUser = await UserModel.findByIdAndUpdate(user._id, { avatar: _id }, {
@@ -98,7 +98,7 @@ async (req, res, next) => {
       res.status(200).send({ 
         user: 
         {
-          id: updatedUser._id,
+          _id: updatedUser._id,
           name: updatedUser.name,
           surname: updatedUser.surname,
           username: updatedUser.username,
@@ -106,6 +106,7 @@ async (req, res, next) => {
           avatar: updatedUser.avatar,
           role: updatedUser.role,
           reviews: updatedUser.reviews,
+          dateOfBirth: updatedUser.dateOfBirth
         },
         accessToken: token,
         refreshToken: refreshToken,
@@ -242,6 +243,27 @@ async (req, res, next) => {
     next(createError(500, `An error occurred while deleting user ${req.params.reviewID}`))
   }
 
+})
+
+// GET SINGLE USER ✅
+userRouter.get("/profile/:userName",
+// JwtMiddleware,
+async (req, res, next) => {
+  try {
+
+    const userName = req.params.userName
+
+    const userProf = await UserModel.findOne({ username: userName })
+
+    await userProf.populate(['reviews', 'avatar'])
+
+    res.send(userProf)
+
+  } catch (error) {
+
+    next(createError(500, "An error occurred while getting users' list "))
+
+  }
 })
 
 

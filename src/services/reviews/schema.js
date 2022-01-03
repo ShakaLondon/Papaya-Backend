@@ -9,10 +9,10 @@ const ReviewSchema = new Schema(
       required: true,
       ref: "Business",
     },
-    businessName: {
-      type: String,
-      required: true,
-    },
+    // businessName: {
+    //   type: String,
+    //   required: true,
+    // },
     website: {
       type: String,
       required: true,
@@ -22,10 +22,10 @@ const ReviewSchema = new Schema(
       required: true,
       ref: "Users",
     },
-    productID: {
+    productIDs: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Products",
-    },
+    }],
     rating: {
       type: Number,
       required: true,

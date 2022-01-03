@@ -107,6 +107,54 @@ async (req, res, next) => {
 
 })
 
+// // UPLOADBUSINESSIMAGE ✅
+// imageRouter.post('/upload/business/avatar',
+// JwtMiddleware,
+// parseFile.single("avatar"),
+// async (req, res, next) => {
+
+//   try {
+    
+//     // Upload image to cloudinary
+//     // const result = await cloudinary.uploader.upload(req.image.path);
+//     //  // Create new user
+
+//      console.log(req.user + "here")
+
+//      const user = req.user
+
+//     //  const newUpload = await new UploadModel({
+//     //   avatar: result.secure_url,
+//     //   cloudinary_ID: result.public_id,
+//     //   userID: user._id,
+//     // }).save();
+
+//     // console.log(newUpload)
+
+//      const updatedUser = await UploadModel.findByIdAndUpdate(user.avatar, {
+//         avatar: req.file.path,
+//         // cloudinary_ID: result.public_id,
+//         // userID: user._id,
+//       }, {
+//       new: true, // to use existing record n
+//       runValidators: true,
+//     })
+
+
+//     const userNew = await UserModel.findById(req.user._id)
+
+//     await userNew.populate(['reviews', 'avatar'])
+
+//     console.log(userNew)
+
+
+//     res.status(200).send(userNew);
+//   } catch (err) {
+//     next(err)
+//   }
+
+// })
+
 
 
 export default imageRouter

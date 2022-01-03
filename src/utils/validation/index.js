@@ -2,6 +2,7 @@ import { body, validationResult } from 'express-validator'
 import UserModel from '../../services/users/schema.js'
 import BusinessUserModel from "../../services/business-users/schema.js";
 import ReviewModel from "../../services/reviews/schema.js";
+import BusinessModel from "../../services/business/schema.js";
 
  const userBusinessValidationRules = () => {
 
@@ -113,7 +114,14 @@ body("website").exists().withMessage("Website is a mandatory field!").isURL().wi
   //  CHECKS BODY REQUEST TO SEE IF IT FITS THE CORRECT STRUCTURE
   
   body("businessName").exists().withMessage("Business name is a mandatory field!").isString().withMessage("Business name must be a string"),
-  body("website").exists().withMessage("Website is a mandatory field!").isURL().withMessage("Must be a valid website"),
+  body("website").exists().withMessage("Website is a mandatory field!").isURL().withMessage("Must be a valid website")
+  .custom( async (value) => {
+    return await BusinessModel.findOne({ website: value }).then((business) => {
+      if (business) {
+        return Promise.reject('This business already has a Papaya page. Please use the search bar to find them.');
+      }
+    });
+  }),
   body("category").exists().withMessage("Category is a mandatory field!").isString().withMessage("Category must be a string"),
   
   ]

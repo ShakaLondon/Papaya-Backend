@@ -21,6 +21,8 @@ import {
 } from "./errorHandlers.js";
 import tokenRouter from "./services/token/index.js";
 import imageRouter from "./services/uploads/index.js";
+import categoryRouter from "./services/category/index.js";
+import productRouter from "./services/Products/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -67,6 +69,8 @@ server.use("/users", businessUserRouter);
 server.use("/users", userRouter);
 server.use("/reviews", reviewRouter);
 server.use("/business", businessRouter);
+server.use("/category", categoryRouter);
+server.use("/product", productRouter);
 
 
 

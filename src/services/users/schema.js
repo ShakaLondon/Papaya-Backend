@@ -21,7 +21,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    dateOfBirth:{
+    dateOfBirth: {
       type: Date,
       required: true,
     },
@@ -29,7 +29,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    avatar:{
+    avatar: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Upload",
       // default: "https://ui-avatars.com/api/?name=Unnamed+User",

@@ -6,34 +6,46 @@ import BusinessModel from "../business/schema.js"
 import validations from "../../utils/validation/index.js"
 import { adminOnly } from "../../utils/auth/adminOnly.js"
 import { JwtMiddleware } from "../../utils/auth/jwt.js"
+import businessRouter from "../business/index.js"
 
 const { reviewValidationRules, validate } = validations
 
 const reviewRouter = express.Router()
 
 // CREATE REVIEW ✅
-reviewRouter.post("/",
+reviewRouter.post("/:businessWeb",
 JwtMiddleware,
 reviewValidationRules(),
 validate,
-adminOnly,
+// adminOnly,
 async (req, res, next) => {
   try {
-    const newReview = new ReviewModel(req.body)
-    const { _id, businessID, userID } = await newReview.save()
-    console.log(userID)
+    const businessWeb = req.params.businessWeb
+    console.log(businessWeb)
 
-    const business = await BusinessModel.findByIdAndUpdate(businessID, { $push: { reviewIDs: _id } },
+    const businessOBJ = await BusinessModel.find({ website: `www.${businessWeb}` }).populate(['avatar'])
+    console.log(businessOBJ)
+
+    const business = businessOBJ[0]
+
+    const newReview = await new ReviewModel({...req.body, businessID: business._id, userID: req.user._id}).save()
+    console.log(newReview)
+
+    const businessUpdate = await BusinessModel.findByIdAndUpdate(newReview.businessID, { $push: { reviewIDs: newReview._id } },
       { new: true, 
         runValidators: true }
   )
 
-  const user = await UserModel.findByIdAndUpdate(userID, { $push: { reviews: _id } },
+  console.log(businessUpdate)
+
+  const user = await UserModel.findByIdAndUpdate(newReview.userID, { $push: { reviews: newReview._id } },
     { new: true, 
       runValidators: true }
 )
 
-    res.status(201).send({ _id })
+console.log(user)
+
+    res.status(201).send({ ...newReview._id })
 
   } catch (error) {
 
@@ -52,12 +64,12 @@ async (req, res, next) => {
 
 // GET ALL REVIEWS ✅
 reviewRouter.get("/",
-JwtMiddleware,
-adminOnly,
+// JwtMiddleware,
+// adminOnly,
 async (req, res, next) => {
   try {
 
-    const reviews = await ReviewModel.find()
+    const reviews = await ReviewModel.find().populate(['userID', 'businessID'])
 
     res.send(reviews)
 

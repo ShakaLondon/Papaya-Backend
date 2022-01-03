@@ -13,11 +13,21 @@ const UploadSchema = new Schema(
       type: String,
       required: true,
     },
-    userID: {
+    // userID: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   required: true,
+    //   ref: "User"
+    // },
+    profileID: {
       type: mongoose.Schema.Types.ObjectId,
+      refPath: 'rolePath',
       required: true,
-      ref: "User"
     },
+    rolePath: {
+        type: String,
+        // required: true,
+        enum: ["BusinessUsers", "Users"]
+      },
   },
   {
     timestamps: true, // adding createdAt and modifiedAt automatically
