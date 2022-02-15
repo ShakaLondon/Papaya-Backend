@@ -1,6 +1,6 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-const { Schema, model } = mongoose
+const { Schema, model } = mongoose;
 
 const ReviewSchema = new Schema(
   {
@@ -22,10 +22,12 @@ const ReviewSchema = new Schema(
       required: true,
       ref: "Users",
     },
-    productIDs: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Products",
-    }],
+    productIDs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Products",
+      },
+    ],
     rating: {
       type: Number,
       required: true,
@@ -34,7 +36,7 @@ const ReviewSchema = new Schema(
       type: String,
       required: true,
     },
-    title:{
+    title: {
       type: String,
       required: true,
     },
@@ -53,10 +55,8 @@ const ReviewSchema = new Schema(
   {
     timestamps: true, // adding createdAt and modifiedAt automatically
   }
-)
+);
 
-
-export default model("Reviews", ReviewSchema) // bounded to "users" collection
+export default model("Reviews", ReviewSchema); // bounded to "users" collection
 
 // seperate crud for embeded values check purchase history in riccardos code
-

@@ -41,5 +41,8 @@
     "redux-persist": "^6.0.0",
     "streamifier": "^0.1.1",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "prettier": "2.5.1"
   }
 }

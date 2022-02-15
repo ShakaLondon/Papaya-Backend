@@ -4,12 +4,11 @@
 // import cloudinary from '../utils/cloudinary.js'
 // Multer config
 
-
 // cloudinary.config({
 //   cloud_name: process.env.CLOUD_NAME,
 //   api_key: process.env.API_KEY,
 //   api_secret: process.env.API_SECRET,
-// }); 
+// });
 
 // const storage = new CloudinaryStorage({
 //   cloudinary: cloudinary,
@@ -27,10 +26,9 @@
 //   }
 // })
 
-
 // const storage = multer.memoryStorage();
 
-// const multerUploads = multer({ 
+// const multerUploads = multer({
 //   storage: storage,
 //   // fileFilter: (req, file, cb) => {
 //   //   console.log(file)

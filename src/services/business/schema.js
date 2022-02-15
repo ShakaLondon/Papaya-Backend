@@ -1,7 +1,7 @@
-import mongoose from "mongoose"
-import bcrypt from "bcrypt"
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-const { Schema, model } = mongoose
+const { Schema, model } = mongoose;
 
 const BusinessSchema = new Schema(
   {
@@ -18,41 +18,45 @@ const BusinessSchema = new Schema(
       required: true,
       // ref: "Category",
     },
-    avatar:{
+    avatar: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Upload",
       // default: "https://ui-avatars.com/api/?name=Unnamed+User",
     },
-    productIDs: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Products"
-    }],
-    reviewIDs: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Reviews"
-    }],
+    productIDs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Products",
+      },
+    ],
+    reviewIDs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Reviews",
+      },
+    ],
     businessUserID: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
-    }
+      ref: "User",
+    },
   },
   {
     timestamps: true, // adding createdAt and modifiedAt automatically
-  },
+  }
   // {
   //   toObject: {
   //   virtuals: true
   //   },
   //   toJSON: {
-  //   virtuals: true 
+  //   virtuals: true
   //   }
   // }
-)
+);
 
-BusinessSchema.virtual('category', {
-  ref: 'Category',
-  localField: 'categoryID',
-  foreignField: '_id'
+BusinessSchema.virtual("category", {
+  ref: "Category",
+  localField: "categoryID",
+  foreignField: "_id",
 });
 
 // BusinessSchema.virtual('reviews', {
@@ -61,7 +65,7 @@ BusinessSchema.virtual('category', {
 //   foreignField: '_id'
 // });
 
-// BusinessSchema.virtual('reviews').set(function(_id) { 
+// BusinessSchema.virtual('reviews').set(function(_id) {
 
 //   const businessDocument = this
 
@@ -70,9 +74,8 @@ BusinessSchema.virtual('category', {
 //   console.log(business)
 
 //   // businessDocument.populate('reviewIDs')
-  
-//   return business });
 
+//   return business });
 
 // BusinessSchema.statics.findAverages = async function (catName) {
 
@@ -85,7 +88,7 @@ BusinessSchema.virtual('category', {
 
 //     const titleCaseCat = wordArr.join(" ")
 
-//   const catDocument = this 
+//   const catDocument = this
 
 //   const category = await catDocument.findOne({ titleCaseCat })
 
@@ -99,12 +102,9 @@ BusinessSchema.virtual('category', {
 //   }
 // }
 
+BusinessSchema.set("toObject", { virtuals: true });
+BusinessSchema.set("toJSON", { virtuals: true });
 
-
-BusinessSchema.set('toObject', { virtuals: true });
-BusinessSchema.set('toJSON', { virtuals: true });
-
-export default model("Business", BusinessSchema) // bounded to "users" collection
+export default model("Business", BusinessSchema); // bounded to "users" collection
 
 // seperate crud for embeded values check purchase history in riccardos code
-

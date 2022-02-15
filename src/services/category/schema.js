@@ -1,6 +1,6 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-const { Schema, model } = mongoose
+const { Schema, model } = mongoose;
 
 const CategorySchema = new Schema(
   {
@@ -13,98 +13,103 @@ const CategorySchema = new Schema(
       ref: "Category",
       // required: true,
     },
-    subCategoryIDs: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-    }],
+    subCategoryIDs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+      },
+    ],
     categoryLevel: {
       type: Number,
       // ref: "Category",
       required: true,
     },
-    categoryList: [{
-      type: mongoose.Schema.Types.ObjectId,
-      refPath: 'rolePath',
-      required: true,
-    }],
-    rolePath: {
-        type: String,
-        // required: true,
-        enum: ["Business", "Products"]
+    categoryList: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: "rolePath",
+        required: true,
       },
-      // categoryListNo: {
-      //   type: Number,
-        // refPath: 'rolePath',
-        // required: true,
-      // },
-  }, 
+    ],
+    rolePath: {
+      type: String,
+      // required: true,
+      enum: ["Business", "Products"],
+    },
+    // categoryListNo: {
+    //   type: Number,
+    // refPath: 'rolePath',
+    // required: true,
+    // },
+  }
   // {
   //   toObject: {
   //   virtuals: true
   //   },
   //   toJSON: {
-  //   virtuals: true 
+  //   virtuals: true
   //   }
   // }
-)
+);
 
 CategorySchema.statics.findByName = async function (catName) {
-
-  console.log(catName)
+  console.log(catName);
 
   let strLowerCase = catName.toLowerCase();
-    let wordArr = strLowerCase.split(" ").map(function(currentValue) {
-        return currentValue[0].toUpperCase() + currentValue.substring(1);
-    });
+  let wordArr = strLowerCase.split(" ").map(function (currentValue) {
+    return currentValue[0].toUpperCase() + currentValue.substring(1);
+  });
 
-    const titleCaseCat = wordArr.join(" ")
+  const titleCaseCat = wordArr.join(" ");
 
-  const catDocument = this 
+  const catDocument = this;
 
-  const category = await catDocument.findOne({ titleCaseCat })
+  const category = await catDocument.findOne({ titleCaseCat });
 
-  console.log(category)
+  console.log(category);
 
-  if(category) {
-    return category
+  if (category) {
+    return category;
   } else {
-    const newCat = await new this ({name: titleCaseCat}).save()
-    return newCat
+    const newCat = await new this({ name: titleCaseCat }).save();
+    return newCat;
   }
-}
+};
 
-CategorySchema.virtual('categoryItems', {
-  ref: ['Business', 'Products'],
-  localField: '_id',
-  foreignField: 'categoryID',
+CategorySchema.virtual("categoryItems", {
+  ref: ["Business", "Products"],
+  localField: "_id",
+  foreignField: "categoryID",
   // count: true
 });
 
-CategorySchema.virtual('categoryItemsNo', {
-  ref: ['Business', 'Products'],
-  localField: '_id',
-  foreignField: 'categoryID',
-  count: true
+CategorySchema.virtual("categoryItemsNo", {
+  ref: ["Business", "Products"],
+  localField: "_id",
+  foreignField: "categoryID",
+  count: true,
 });
 
-CategorySchema.virtual('parentCategory', {
-  ref: 'Category',
-  localField: 'parentCategoryID',
-  foreignField: '_id'
+CategorySchema.virtual("parentCategory", {
+  ref: "Category",
+  localField: "parentCategoryID",
+  foreignField: "_id",
 });
 
-CategorySchema.virtual('subCategories', {
-  ref: 'Category',
-  localField: 'subCategoryIDs',
-  foreignField: '_id'
+CategorySchema.virtual("subCategories", {
+  ref: "Category",
+  localField: "subCategoryIDs",
+  foreignField: "_id",
 });
 
-CategorySchema.virtual('categoryListNo').get(function() { return this.categoryList.length; });
+CategorySchema.virtual("categoryListNo").get(function () {
+  return this.categoryList.length;
+});
 
 // CategorySchema.virtual('categorySubCat').get(function() { return this.subCategoryIDs; });
 
-CategorySchema.set('toObject', { virtuals: true });
-CategorySchema.set('toJSON', { virtuals: true });
+CategorySchema.set("toObject", { virtuals: true });
+CategorySchema.set("toJSON", { virtuals: true });
 
 // CategorySchema.pre("init", async function (doc) {
 
@@ -113,7 +118,7 @@ CategorySchema.set('toJSON', { virtuals: true });
 //   console.log(currentDoc, "doc")
 
 //   if (doc)
- 
+
 //   // if (this.isModified("categoryList")) {
 //     {
 // // {    const subcategories = currentDoc.subCategoryIDs
@@ -127,49 +132,38 @@ CategorySchema.set('toJSON', { virtuals: true });
 //   // return doc
 // });
 
-
 CategorySchema.statics.findAverages = async function (category) {
+  console.log(category.categoryItems, "this category");
 
-  console.log(category.categoryItems, "this category")
+  if (category.categoryItems.length > 0) {
+    const newArray = [];
 
-  if ( category.categoryItems.length > 0 ) {
+    category.categoryItems.forEach((catItem) => {
+      const reviews = catItem.reviewIDs;
 
-    const newArray = []
-    
-    category.categoryItems.forEach(catItem => {
-
-      const reviews = catItem.reviewIDs
-
-      console.log(reviews)
+      console.log(reviews);
 
       const catListTotal = reviews?.reduce(function (a, b) {
-        
-        return {rating: a.rating + b.rating}; // returns object with property x
-      })
+        return { rating: a.rating + b.rating }; // returns object with property x
+      });
 
-      console.log(catListTotal)
+      console.log(catListTotal);
 
       const averageValue = {
         business: catItem,
         count: reviews.length,
         totalScore: catListTotal.rating,
-        average: catListTotal.rating / reviews.length
-      }
+        average: catListTotal.rating / reviews.length,
+      };
 
-      console.log(averageValue)
+      console.log(averageValue);
 
-      newArray.push(averageValue)
-
-      
-
-
-      
+      newArray.push(averageValue);
     });
 
+    console.log(newArray);
 
-    console.log(newArray)
-
-    return newArray
+    return newArray;
   }
 
   // let strLowerCase = catName.toLowerCase();
@@ -179,7 +173,7 @@ CategorySchema.statics.findAverages = async function (category) {
 
   //   const titleCaseCat = wordArr.join(" ")
 
-  // const catDocument = this 
+  // const catDocument = this
 
   // const category = await catDocument.findOne({ titleCaseCat })
 
@@ -191,10 +185,8 @@ CategorySchema.statics.findAverages = async function (category) {
   //   const newCat = await new this ({name: titleCaseCat}).save()
   //   return newCat
   // }
-}
+};
 
-
-export default model("Category", CategorySchema) // bounded to "users" collection
+export default model("Category", CategorySchema); // bounded to "users" collection
 
 // seperate crud for embeded values check purchase history in riccardos code
-

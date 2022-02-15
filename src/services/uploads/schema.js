@@ -1,7 +1,7 @@
-import mongoose from "mongoose"
-import bcrypt from "bcrypt"
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-const { Schema, model } = mongoose
+const { Schema, model } = mongoose;
 
 const UploadSchema = new Schema(
   {
@@ -20,22 +20,20 @@ const UploadSchema = new Schema(
     // },
     profileID: {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: 'rolePath',
+      refPath: "rolePath",
       required: true,
     },
     rolePath: {
-        type: String,
-        // required: true,
-        enum: ["BusinessUsers", "Users"]
-      },
+      type: String,
+      // required: true,
+      enum: ["BusinessUsers", "Users"],
+    },
   },
   {
     timestamps: true, // adding createdAt and modifiedAt automatically
   }
-)
+);
 
-
-export default model("Upload", UploadSchema) // bounded to "users" collection
+export default model("Upload", UploadSchema); // bounded to "users" collection
 
 // seperate crud for embeded values check purchase history in riccardos code
-

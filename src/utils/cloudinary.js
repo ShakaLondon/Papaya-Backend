@@ -1,6 +1,6 @@
-import { v2 as cloudinary } from "cloudinary"
-import { CloudinaryStorage } from "multer-storage-cloudinary"
-import { config, uploader } from 'cloudinary'
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { config, uploader } from "cloudinary";
 
 const { CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } = process.env;
 
@@ -18,12 +18,12 @@ cloudinary.config({
 
 export const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req,file) => {
+  params: async (req, file) => {
     return {
-      folder: 'Papaya',
-      public_id: file.fieldname + '-' + req.user._id + '-' + req.user.username
-    }
-  }
+      folder: "Papaya",
+      public_id: file.fieldname + "-" + req.user._id + "-" + req.user.username,
+    };
+  },
 });
 
 // export const coverStorage = new CloudinaryStorage({
@@ -35,5 +35,3 @@ export const storage = new CloudinaryStorage({
 //     }
 //   }
 // });
-
-  
