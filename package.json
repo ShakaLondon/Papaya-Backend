@@ -30,6 +30,7 @@
     "express-list-endpoints": "^6.0.0",
     "express-validator": "^6.13.0",
     "fs-extra": "^10.0.0",
+    "heroku": "^7.59.3",
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.12",
