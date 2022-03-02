@@ -18,6 +18,7 @@
     "url": "https://github.com/ShakaLondon/Papaya-Backend/issues"
   },
   "engines": {
+    "start": "node server.js",
     "node": "14.17.1"
   },
   "homepage": "https://github.com/ShakaLondon/Papaya-Backend#readme",
