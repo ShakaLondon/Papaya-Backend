@@ -34,14 +34,17 @@ const server = express();
 
 const PORT = process.env.PORT || 3005;
 
-const whiteList = ["http://localhost:3000"];
+const whiteList = ["http://localhost:3000", process.env.FRONTEND_URL, process.env.FRONTEND_PROD_URL, process.env.REACT_APP_API_URL ];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (
+    if (!origin || whiteList.indexOf(origin) !== -1)
+    // (
       // (whiteList.some((allowedUrl) => allowedUrl === origin))
-      whiteList.indexOf(origin) !== -1 ||
-      !origin
-    ) {
+      // whiteList.indexOf(origin) !== -1 ||
+      // !origin
+    // ) 
+    {
       callback(null, true);
     } else {
       const error = new Error("Not allowed by cors!");
