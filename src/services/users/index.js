@@ -265,6 +265,25 @@ userRouter.post(
 
 // GET SINGLE USER ✅
 userRouter.get(
+  "/profile/refresh/:userName",
+  JwtMiddleware,
+  async (req, res, next) => {
+    try {
+      const userName = req.params.userName;
+
+      const userProf = await UserModel.findOne({ username: userName });
+
+      await userProf.populate(["reviews", "avatar"]);
+
+      res.send(userProf);
+    } catch (error) {
+      next(createError(500, "An error occurred while getting users' list "));
+    }
+  }
+);
+
+// GET SINGLE USER ✅
+userRouter.get(
   "/profile/:userName",
   // JwtMiddleware,
   async (req, res, next) => {
