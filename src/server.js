@@ -23,6 +23,7 @@ import tokenRouter from "./services/token/index.js";
 import imageRouter from "./services/uploads/index.js";
 import categoryRouter from "./services/category/index.js";
 import productRouter from "./services/Products/index.js";
+import searchRouter from "./services/search/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -72,6 +73,7 @@ server.use("/reviews", reviewRouter);
 server.use("/business", businessRouter);
 server.use("/category", categoryRouter);
 server.use("/product", productRouter);
+server.use("/", searchRouter);
 
 // TELL SERVER YOU WANT TO USE THIS
 
