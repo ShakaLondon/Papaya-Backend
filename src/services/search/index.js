@@ -1,6 +1,7 @@
 import express from "express"
 import CategoryModel from "../category/schema.js";
 import BusinessModel from "../business/schema.js";
+import ReviewModel from "../reviews/schema.js";
 import ProductModel from "../Products/schema.js"
 import createError from "http-errors";
 import mongoose from "mongoose";
@@ -99,9 +100,38 @@ searchRouter.post("/search", async (req, res, next) => {
               
 
               for (let j = 0; j < categoryAggregate.length; j++) {
-                const output = await BusinessModel.find({ categoryID: mongoose.Types.ObjectId(categoryAggregate[j]._id) })
+                const output = await BusinessModel.find({ categoryID: mongoose.Types.ObjectId(categoryAggregate[j]._id) }).populate(["avatar"])
+
+                
+
+                // const newObject = {...output[0], score: businessResults}
+
+                // console.log("new object", newObject)
+
+
                 if (output.length > 0) {
-                  categoryBusiness.push(output[0])
+                  console.log(output[0], "business")
+                const businessResults = await ReviewModel.aggregate(
+                  [
+                    { $match: { businessID: output[0]._id } },
+                    {
+                      $group: {
+                        _id: null,
+                        // totalReviews: {
+                        count: { $sum: 1 },
+                        // },
+                        totalScore: {
+                          $sum: "$rating",
+                        },
+                        average: {
+                          $avg: "$rating",
+                        },
+                      },
+                    },
+                  ]
+                );
+                
+                  categoryBusiness.push({...output[0].toObject(), score: businessResults})
                 } 
               }
 
